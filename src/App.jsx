@@ -1,9 +1,5 @@
 function App() {
-  return (
-    <>
-      <h1>WorldWise</h1>
-    </>
-  );
+  return <h2>App</h2>;
 }
 
 export default App;
