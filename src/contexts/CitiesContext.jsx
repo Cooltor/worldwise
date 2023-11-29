@@ -1,4 +1,11 @@
-import { createContext, useReducer, useEffect, useContext } from "react";
+import {
+  createContext,
+  useReducer,
+  useEffect,
+  useContext,
+  useMemo,
+  useCallback,
+} from "react";
 
 const BASE_URL = "http://localhost:8000/";
 
@@ -71,18 +78,21 @@ function CitiesProvider({ children }) {
     fetchCities();
   }, []);
 
-  async function getCity(cityId) {
-    if (currentCity.id === Number(cityId)) return;
+  const getCity = useCallback(
+    async function getCity(cityId) {
+      if (currentCity.id === Number(cityId)) return;
 
-    dispatch({ type: "loading" });
-    try {
-      const response = await fetch(`${BASE_URL}cities/${cityId}`);
-      const data = await response.json();
-      dispatch({ type: "city/loaded", payload: data });
-    } catch (error) {
-      dispatch({ type: "rejected", payload: error.message });
-    }
-  }
+      dispatch({ type: "loading" });
+      try {
+        const response = await fetch(`${BASE_URL}cities/${cityId}`);
+        const data = await response.json();
+        dispatch({ type: "city/loaded", payload: data });
+      } catch (error) {
+        dispatch({ type: "rejected", payload: error.message });
+      }
+    },
+    [currentCity.id]
+  );
 
   async function createCity(newCity) {
     dispatch({ type: "loading" });
@@ -114,20 +124,21 @@ function CitiesProvider({ children }) {
     }
   }
 
+  const value = useMemo(
+    () => ({
+      cities,
+      isLoading,
+      currentCity,
+      error,
+      getCity,
+      createCity,
+      deleteCity,
+    }),
+    [cities, currentCity, error]
+  );
+
   return (
-    <CitiesContext.Provider
-      value={{
-        cities,
-        isLoading,
-        currentCity,
-        error,
-        getCity,
-        createCity,
-        deleteCity,
-      }}
-    >
-      {children}
-    </CitiesContext.Provider>
+    <CitiesContext.Provider value={value}>{children}</CitiesContext.Provider>
   );
 }
 
